@@ -9,10 +9,11 @@ class Compresser():
 		"""
 		pass
 	
-	def read_data(self, filename):
+	def read(self, filename):
 		"""
 		"""
 		try:
+			data = open(filename, 'rb').read()
 			self.data = open(filename, 'rb').read()
 		except IOError:
 			print "Error Opening file %s! Exiting!" % filename
@@ -21,23 +22,24 @@ class Compresser():
 	def rle_encode(self):
 		"""
 		"""
-		pass
+		for char in self.data:
+			print "the first char is" + char, 
 	
 	def rle_decode(self):
 		"""
 		"""
 		pass
 	
-	def huffman_encode:
+	def huffman_encode(self):
 		"""
 		"""
 		pass
 	
-	def huffman_decode:
+	def huffman_decode(self):
 		"""
 		"""
 		pass
 	
 if __name__ == "__main__":
 	comp = Compresser()
-	comp.read("testfile.txt")
+	comp.read("testdata.txt")

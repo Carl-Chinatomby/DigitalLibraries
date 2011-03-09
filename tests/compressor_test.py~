@@ -1,0 +1,21 @@
+"""
+"""
+import os, sys
+diglib_path = os.path.abspath('..')
+sys.path.append("digtlib_path")
+from .compressor import Compressor
+
+class CompresserTest():
+	"""
+	"""
+	def __init__(self):
+		pass
+	
+	def rle_test(self):
+		pass
+		#comp = Compressor()
+		
+		#origdata = open("testdata.txt", 'rb').read()
+		#comp.read(testdata.txt)
+		#comp.rle_encode
+		#assert(origdata == comp.rle_decode)
