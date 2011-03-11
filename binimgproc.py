@@ -11,6 +11,10 @@ class BinaryImageProc():
     
     def read_img(self, filename):
         """
+        This is test code found on google that I used for learning purposes
+        of the jpeg headers and comments. 
+        This function is going to be reimplemented to return a full binary 
+        or hex array that other algorithms can use for processing
         """
         try:
             data = open(filename, 'rb').read()
@@ -62,5 +66,7 @@ class BinaryImageProc():
     
 
 if __name__=="__main__":
+    path = "data/"
+    filename = "cowboy_sil.jpeg"
     proc = BinaryImageProc()
-    proc.read_img("cowboy_sil.jpeg")
+    proc.read_img(path+filename)
