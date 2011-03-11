@@ -1,0 +1,6 @@
+This folder contains all the tests for modules 
+in the Digital Libraries package. Tests can be 
+run individually as a python script or with nose
+by invoking nosetests <filepath/packagepath> -s
+Adding the -s flag disallows stdout captures so 
+print commands are visable. 
