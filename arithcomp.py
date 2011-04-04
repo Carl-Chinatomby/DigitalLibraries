@@ -14,13 +14,35 @@ class ArithComp():
 		"""
 		"""
 		self.filename = filename
-		print "the filename is " + filename
+		self.charset = {}
+		self.initfreq = 0
 		
+		#create initial frequency of digits
+		for number in xrange(0, 9+1):
+			self.charset[number] = self.initfreq
+		#create initial frequency for letters
+		for letter in xrange(ord('a'), ord('z')+1):
+			self.charset[chr(letter)] = self.initfreq
+		self.charsetlen = len(self.charset)
+		
+		#put try/catch statement here 
+		self.data = open(self.filename).read()
 	
+	def print_table(self):
+		print "Char, Frequency"
+		for char in self.charset:
+			print str(char) + ', ' + str(self.charset[char])
+		
 	def adaptive_encode(self):
 		"""
 		"""
-		pass
+		for i, c in enumerate(self.data):
+			if c.isalpha():
+				self.charset[c.lower()] += 1
+			else:
+				self.charset[int(c)] += 1
+		
+		self.print_table()
 	
 	def adaptive_decode(self):
 		"""
@@ -30,8 +52,10 @@ class ArithComp():
 def main():
 	"""
 	"""
-	filename = sys.argv[1]
-	Comp = ArithComp(filename)
+	#filename = sys.argv[1]
+	filename = "data/arithtest.txt"
+	comp = ArithComp(filename)
+	comp.adaptive_encode()
 
 if __name__=="__main__":
 	main()
