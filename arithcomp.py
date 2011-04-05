@@ -14,8 +14,15 @@ class ArithComp():
 		"""
 		"""
 		self.filename = filename
+		#table will be a dictionary mapping to lists: 'char':[freq, low, high, prob]
+		self.table = {}
+		
 		self.charset = {}
+		self.ranges = {}
+		self.prob = {}
+		self.totalchars = 0
 		self.initfreq = 0
+		self.code = 0
 		
 		#create initial frequency of digits
 		for number in xrange(0, 9+1):
@@ -25,24 +32,68 @@ class ArithComp():
 			self.charset[chr(letter)] = self.initfreq
 		self.charsetlen = len(self.charset)
 		
+		#calculate ranges and probabiities
+		prev_high = 0
+		for char in self.charset:
+			self.prob[char] = self.charset[char]/self.charsetlen
+			self.ranges[char] = [prev_high, prev_high+self.prob[char]]
+			prev_high = prev_high + self.prob[char]
 		#put try/catch statement here 
 		self.data = open(self.filename).read()
 	
 	def print_table(self):
-		print "Char, Frequency"
+		print "Char, Frequency, Probability, Range"
 		for char in self.charset:
-			print str(char) + ', ' + str(self.charset[char])
+			print str(char) + ', \t' + str(self.charset[char]) + ', \t' + \
+			str(self.prob[char]) + ', \t' + str(self.ranges[char])
+	
+	def print_prob_sum(self):
+		sum = 0
+		for c in self.prob:
+			sum += self.prob[c]
+		print "The Sum is " + str(sum)
+			
+	def update_table(self, c):
+		self.totalchars += 1
+		
+		#update frequency table			
+		self.charset[c] += 1
+		
+		#update probabilities
+		self.prob[c] = float(self.charset[c])/self.totalchars
+		
+		#update ranges
+		found = False
+		prev_high = 0
+		for char in self.charset:		
+			self.prob[char] = float(self.charset[char])/self.totalchars
+			self.ranges[char] = [prev_high, prev_high + self.prob[char]]
+			prev_high = self.ranges[char][0] + self.prob[char]
+		
+		
 		
 	def adaptive_encode(self):
 		"""
 		"""
-		for i, c in enumerate(self.data):
+		low = 0
+		high = 1
+		for i, c in enumerate(self.data):	
+			range = high - low
 			if c.isalpha():
-				self.charset[c.lower()] += 1
+				self.update_table(c.lower())
+				high = low + range * self.ranges[c.lower()][1] 
+				low = low + range * self.ranges[c.lower()][0]
 			else:
-				self.charset[int(c)] += 1
-		
+				self.update_table(int(c))
+				high = low + range * self.ranges[int(c)][1] 
+				low = low + range * self.ranges[int(c)][0]
+			self.code = low
+			
+			
 		self.print_table()
+		self.print_prob_sum() 
+		print "The total chars is " + str(self.totalchars)
+		print "The Code is " + str(self.code)
 	
 	def adaptive_decode(self):
 		"""
