@@ -1,9 +1,22 @@
 """
+********************
+By Carl Chinatomby
+********************
 Implements Adaptive Arithmetic Encoding and Decoding. 
 Initially all characters are all the same frequency.
 For simplicity the alphabet only consists of lowercase 
 characters and 10 digits. As new characters present the
 domains assigned to the symbols are changed accordingly.
+
+
+To run this program you would simply do:
+	
+	    python arithcomp.py <inputfile> <outputfile>
+		
+For example running:
+	    python arithcomp.py data/arithtest.txt data/encarith.txt
+will calculate the code for arithtest.txt and output the code in enarith.txt
+				
 """
 import sys
 from math import floor, trunc
@@ -11,10 +24,11 @@ from math import floor, trunc
 class ArithComp():
 	"""
 	"""
-	def __init__(self, filename):
+	def __init__(self, infile, outfile):
 		"""
 		"""
-		self.filename = filename
+		self.infile = infile
+		self.outfile = outfile
 		self.charset = {}
 		self.ranges = {}
 		self.prob = {}
@@ -23,7 +37,6 @@ class ArithComp():
 		self.code = 0.0
 		self.decdata = ''
 		
-
 		#create initial frequency of digits
 		for number in xrange(0, 9+1):
 			self.charset[number] = self.initfreq
@@ -40,13 +53,11 @@ class ArithComp():
 			self.prob[char] = self.charset[char]/float(self.charsetlen)
 			self.ranges[char] = [prev_high, prev_high+self.prob[char]]
 			prev_high = prev_high + self.prob[char]
-			#self.ranges[char] = [prev_high, prev_high + self.charset[char]]
-			#prev_high = prev_high + self.charset[char]
 			self.cumfreq[char] = curcumfreq 
 			curcumfreq += self.initfreq
-		#put try/catch statement here 
-		self.data = open(self.filename).read()
-		
+		self.data = open(self.infile, 'r').read()
+		self.output = open(self.outfile, 'w')
+
 		self.initcharset = self.charset.copy()
 		self.initranges = self.ranges.copy()
 		self.initprob = self.prob.copy()
@@ -76,7 +87,6 @@ class ArithComp():
 			sum += self.prob[c]
 		print "The Sum is " + str(sum)
 			
-	#Generalize these two functions they share soem of the same code
 	def add_char(self, c):
 		self.totalchars += 1
 		
@@ -92,11 +102,9 @@ class ArithComp():
 		for char in self.charset:		
 			self.prob[char] = float(self.charset[char])/self.totalchars
 			self.ranges[char] = [prev_high, prev_high + self.prob[char]]
-			#self.ranges[char] = [prev_high, prev_high + self.charset[char]]
 			self.cumfreq[char] = curcumfreq + self.charset[char]
 			curcumfreq = self.cumfreq[char]
 			prev_high = self.ranges[char][0] + self.prob[char]
-			#prev_high = self.ranges[char][0] + self.charset[char]
 
 			
 	def add_initchar(self, c):
@@ -114,14 +122,16 @@ class ArithComp():
 		for char in self.initcharset:		
 			self.initprob[char] = float(self.initcharset[char])/self.inittotalchars
 			self.initranges[char] = [prev_high, prev_high + self.initprob[char]]
-			#self.initranges[char] = [prev_high, prev_high + self.charset[char]]
 			self.initcumfreq[char] = curcumfreq + self.initcharset[char]
 			curcumfreq = self.initcumfreq[char]
 			prev_high = self.initranges[char][0] + self.initprob[char]
-			#prev_high = self.initranges[char][0] + self.initcharset[char]
 
 			
-	def remove_char(self, c):		
+	def remove_char(self, c):
+		"""
+		Removes a character from the table and updates probabilities
+		This function is currently now used because decoding builds it's own table
+		"""
 		self.totalchars -= 1
 
 		if self.totalchars < 1:
@@ -139,65 +149,35 @@ class ArithComp():
 		prev_high = 0
 		for char in self.charset:		
 			self.prob[char] = float(self.charset[char])/self.totalchars
-			#self.ranges[char] = prev_high, prev_high + self.charset[char]
 			self.ranges[char] = [prev_high, prev_high + self.prob[char]]
 			prev_high = self.ranges[char][0] + self.prob[char]
-			#prve_high = self.ranges[char][0] + self.charset[char]
 
-	def adaptive_encode(self):
+	def encode(self):
 		"""
 		"""
 		low = 0
 		high = 1
-		#high = 9999
+		print "The original data is: " + self.data
 		for i, c in enumerate(self.data):	
 			range = high - low
-			#range = high - low +1
-			print "table before: "
-			self.print_table()
-			print "just read: " + str(c)
 			if c.isalpha():
-				#low = low + range*self.cumfreq[c.lower()]/float(max(self.cumfreq.values()))
-				print "the cum freq for this char is" + str(self.cumfreq[c.lower()])
-				print "the max is " + str(float(max(self.cumfreq.values())))
-				print "the division is" + str(self.cumfreq[c.lower()]/float(max(self.cumfreq.values())))
-				print "the character used for high is " + chr(ord(c.lower())+1)
-				print "the total chars is" + str(float(max(self.cumfreq.values())))
-				#high= low + range*self.cumfreq[chr(ord(c.lower())+1)]/float((max(self.cumfreq.values())-1))
-				nextchar = self.getnextrange(self.ranges[c.lower()][1])
-				#print "the next cahr is " + str(nextchar)
-				#high = low + range*self.cumfreq[nextchar]/float((max(self.cumfreq.values()))) - 1 
-				#low = low + trunc(range*self.cumfreq[c.lower()]/max(self.cumfreq.values()))
-				#high = low + trunc(range*self.cumfreq[nextchar]/max(self.cumfreq.values())) - 1
-				print "the cum freq for the next char is " + str(self.cumfreq[chr(ord(c.lower())+1)])
 				high = low + range * self.ranges[c.lower()][1] 
 				low = low + range * self.ranges[c.lower()][0]
-				#high = low + range * self.ranges[c.lower()][1] - 1 
-				#low = low + range * self.ranges[c.lower()][0]
-				print "the high is : " + str(high)
-				print "the low is : " + str(low)
 				self.charcount += 1
 				self.add_char(c.lower())
-				#raw_input("waiting")
 			else:
+				self.charcount += 1
 				high = low + range * self.ranges[int(c)][1] 
 				low = low + range * self.ranges[int(c)][0]
 				self.add_char(int(c))
 			self.code = low			
-			self.print_table()
-			self.print_prob_sum()
 			
-			print "The total chars is " + str(self.totalchars)
-			print "The Code is " + str(self.code)
-			print "the high is : " + str(high)
-			print "the low is : " + str(low)
-
-			#raw_input("Press Any Key for next input")
-			
-		#write the code and the condensed symbol table to a file
-		#remember to remove all the useless characters as it
-		#just increases space
+		self.print_prob_sum()
+		self.print_table()
+		print "The code is: " + str(self.code)
+		raw_input("Encoding Complete, Press Enter to Decode")
 		
+		self.output.write(str(self.charcount) +','+str(self.code))
 		return self.code
 	
 	def getnextrange(self, prevhigh):
@@ -211,76 +191,44 @@ class ArithComp():
 				return c
 		
 	
-	def adaptive_decode(self, code):
+	def decode(self, code):
 		"""
 		"""
+		data = self.data.split(',')
 		curcode = code
-		#while (curcode > 0 and self.totalchars > 0):
-		#	#print "the curcode is " + str(curcode)				
-		#	for char in self.ranges:
-		#		if curcode > self.ranges[char][0] and curcode < self.ranges[char][1]:
-		#			#print char
-		#			#self.print_table()
-		#			#self.print_prob_sum()
-		#			range = self.ranges[char][1] - self.ranges[char][0]
-		#			curcode -= self.ranges[char][0]
-		#			curcode /= range
-		#			self.remove_char(char)
-		#			self.decdata += str(char)
+		
+		#this part of the code is when you want to read it from a file,
+		#but there are problems since precision gets lost
+		#self.charcount = int(data[0])
+		#curcode = float(data[1])
+
+		print "The Code is: " + str(curcode)
 		count = 0
-		print "decdoing starts now"
-		print "charcount is" + str(self.charcount)
 		while (curcode > 0 and (count < self.charcount)):				
 			count += 1
-			for char in self.initranges:
+			for char in self.ranges:
 				if curcode >= self.initranges[char][0] and curcode < self.initranges[char][1]:
-					print char
-					self.print_table2()					
-					#self.print_prob_sum()
 					range = self.initranges[char][1] - self.initranges[char][0]
-					print "range is " + str(range)
 					curcode -= self.initranges[char][0]
-					print "curcode is now" + str(curcode)
 					curcode /= range
 					self.add_initchar(char)
 					self.decdata += str(char)
-					print "the curcode is: " + str(curcode)
 					break
-		self.print_table2()
-		print self.decdata
-		self.code = 0
-		
-		#low = 0
-		#high = 9999
-		#while (curcode > 0):
-		#	range = high - low + 1
-		#	index = trunc(((curcode-low+1)*max(self.initcumfreq.values())-1)/range)
-		#	#print "index is " + str(index)
-		#	for c in self.initranges:
-		#		if index >= self.initranges[c][0] and index < self.initranges[c][1]:
-		#			nextchar = self.getinitnextrange(self.initranges[c.lower()][1])
-		#			low = low + trunc(range*self.initcumfreq[c.lower()]/max(self.initcumfreq.values()))
-		#			high = low + trunc(range*self.initcumfreq[nextchar]/max(self.initcumfreq.values())) - 1
-		#			print "decdoded: " + c
-		#			print "low is " + str(low)
-		#			print "high is " + str(high)
-		#			if low[0] == high[0]:
-		#				low = low[1]
-		#				low[len(low)] = 0
-		#				high = high[1]
-		#				high[len(high)] = 9
-				
-		#print "The decoded data is " + self.decdata
+		self.print_table()
+		print "The Decoded Data is : " + self.decdata
 
 def main():
 	"""
 	"""
-	#filename = sys.argv[1]
-	filename = "data/arithtest.txt"
-	comp = ArithComp(filename)
-	comp.print_table()
-	code = comp.adaptive_encode()
-	comp.adaptive_decode(code)
+	if len(sys.argv) < 3:
+		print "Please start the program with parameters are follows: \n\n python arithcomp.py <inputfile> <outputfile>"
+		exit(0)
+						
+	infile = sys.argv[1]
+	outfile = sys.argv[2]
+	comp = ArithComp(infile, outfile)
+	code = comp.encode()
+	comp.decode(code)
 	
 if __name__=="__main__":
 	main()
