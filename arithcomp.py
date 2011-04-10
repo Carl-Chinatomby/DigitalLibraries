@@ -23,9 +23,25 @@ from math import floor, trunc
 
 class ArithComp():
 	"""
+	Implements Adaptive Arithmetic Encoding and Decoding. 
+	Initially all characters are all the same frequency.
+	For simplicity the alphabet only consists of lowercase 
+	characters and 10 digits. As new characters present the
+	domains assigned to the symbols are changed accordingly.
+	
+
+	To run this program you would simply do:
+	
+	    python arithcomp.py <inputfile> <outputfile>
+		
+	For example running:
+		python arithcomp.py data/arithtest.txt data/encarith.txt
+	will calculate the code for arithtest.txt and output the code in enarith.txt
+
 	"""
 	def __init__(self, infile, outfile):
 		"""
+		Initializes all the tables to equal probabilities
 		"""
 		self.infile = infile
 		self.outfile = outfile
@@ -58,6 +74,7 @@ class ArithComp():
 		self.data = open(self.infile, 'r').read()
 		self.output = open(self.outfile, 'w')
 
+		#We only need these copies for decode to start a fresh table
 		self.initcharset = self.charset.copy()
 		self.initranges = self.ranges.copy()
 		self.initprob = self.prob.copy()
@@ -66,6 +83,9 @@ class ArithComp():
 		self.inittotalchars = self.totalchars
 	
 	def print_table(self):
+		"""
+		Prints the table that encode uses
+		"""
 		print "Char, Frequency, Probability, Range, CumFreq"
 		for char in self.charset:
 			if self.charset[char]:
@@ -74,6 +94,9 @@ class ArithComp():
 				str(self.cumfreq[char])
 
 	def print_table2(self):
+		"""
+		Prints the table that decode uses
+		"""
 		print "Char, Frequency, Probability, Range, CumFreq"
 		for char in self.initcharset:
 			if self.initcharset[char]:
@@ -82,12 +105,18 @@ class ArithComp():
 				str(self.initcumfreq[char])
 
 	def print_prob_sum(self):
+		"""
+		Prints the sum of all the probabilities in the encode table
+		"""
 		sum = 0
 		for c in self.prob:
 			sum += self.prob[c]
 		print "The Sum is " + str(sum)
 			
 	def add_char(self, c):
+		"""
+		Adds a character to the encode table and updates probablities
+		"""
 		self.totalchars += 1
 		
 		#update frequency table			
@@ -108,6 +137,9 @@ class ArithComp():
 
 			
 	def add_initchar(self, c):
+		"""
+		Adds a chapter to the decode table and ensures that it's updated
+		"""
 		self.inittotalchars += 1
 		
 		#update frequency table			
@@ -130,7 +162,7 @@ class ArithComp():
 	def remove_char(self, c):
 		"""
 		Removes a character from the table and updates probabilities
-		This function is currently now used because decoding builds it's own table
+		This function is currently not used because decoding builds it's own table
 		"""
 		self.totalchars -= 1
 
@@ -154,6 +186,10 @@ class ArithComp():
 
 	def encode(self):
 		"""
+		Adaptively Reads a character, encodes it and updates the probability tables
+		At the end of this the Encoded Number is returned. We do not need the final table
+		at all to decode, all that is required is teh actual number and string length (only 
+		becasue of precision errors)
 		"""
 		low = 0
 		high = 1
@@ -181,11 +217,21 @@ class ArithComp():
 		return self.code
 	
 	def getnextrange(self, prevhigh):
+		"""
+		Gets the next character low range in enocde
+		I dont use this at all right now but will use it if i modify my functions
+		to use ints instead of floats and the CDF instead of probabilities
+		"""
 		for c in self.ranges:
 			if self.ranges[c][0] == prevhigh:
 				return c
 	
 	def getinitnextrange(self, prevhigh):
+		"""
+		Gets the next character low range in enocde
+		I dont use this at all right now but will use it if i modify my functions
+		to use ints instead of floats and the CDF instead of probabilities
+		"""
 		for c in self.initranges:
 			if self.initranges[c][0] == prevhigh:
 				return c
@@ -193,6 +239,9 @@ class ArithComp():
 	
 	def decode(self, code):
 		"""
+		Decodes based on the code given. The decoding process adaptively
+		builds it's only table and updates it and hence it doesn't need the final table
+		from encode to decode. 
 		"""
 		data = self.data.split(',')
 		curcode = code
